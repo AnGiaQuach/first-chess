@@ -87,7 +87,7 @@ function RenderMove(position, chess) {
   const preMove = [];
 
   for (let s of movePieces) {
-    for (let i = 1; i < s.length - 1; i++) {
+    for (let i = 0; i < s.length - 1; i++) {
       let asciiA = s.charCodeAt(i);
       let asciiB = s.charCodeAt(i + 1);
       if (asciiA >= 97 && asciiA <= 104 && asciiB >= 49 && asciiB <= 56) {

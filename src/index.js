@@ -10,18 +10,7 @@ import {
   ResetBackground,
 } from "./operate.js";
 
-// const chess = new Chess(
-//   "rnbqkbnr/pppppppp/8/8/8/5NP1/PPPPPPBP/RNBQK2R w KQkq - 0 1"
-// );
-
-// chess.move("O-O");
-// console.log(chess.ascii());
-
-// let x = 1;
-// let name = String.fromCharCode(96 + x) + "2";
-// console.log(name);
-
-const chess = new Chess("5k2/Q2K4/3R4/8/8/8/8/q7 w - - 0 1");
+const chess = new Chess();
 const BOARD_WITDH = 8;
 RenderBoard();
 RenderAllPieces(chess);
@@ -31,26 +20,53 @@ const playerColor = "w";
 let preMove = [];
 let selectedPosition = "";
 
+async function updateChess(currentFen) {
+  playerTurn = false;
+  console.log(currentFen);
+  try {
+    const moveReponse = await getStockfish(currentFen);
+    playerTurn = true;
+    chess.move(moveReponse);
+    const position = moveReponse[2] + moveReponse[3];
+    const selectedPosition = moveReponse[0] + moveReponse[1];
+    const { type, color } = chess.get(`${position}`);
+    //remove firstplace n place to plan put on
+    removePieces(position);
+    removePieces(selectedPosition);
+    RenderPieces(type, color, position);
+
+    console.log(chess.ascii());
+  } catch (error) {
+    console.log("ERROR:", error);
+  }
+}
+
 for (let i = 1; i <= 8; i++) {
   for (let j = 1; j <= 8; j++) {
     const position = String.fromCharCode(96 + i) + `${j}`;
 
     const square = document.querySelector(`#${position}`);
     square.addEventListener("click", () => {
+      if (playerTurn == false) {
+        return;
+      }
       if (preMove.includes(position)) {
         console.log("it was a move by user!");
 
-        //chess.put(chess.get(`${selectedPosition}`), position);
         chess.move(`${selectedPosition}-${position}`);
-        const { type, color } = chess.get(`${selectedPosition}`);
-        RenderPieces(type, color, position);
-        removePieces(selectedPosition);
-        ResetBackground();
+        console.log(chess.ascii());
+        const { type, color } = chess.get(`${position}`);
+        //remove piece from firstplace n the place plan to put on
 
+        removePieces(selectedPosition);
+        removePieces(position);
+        RenderPieces(type, color, position);
+        //remove previous highlight premove
+
+        ResetBackground();
+        updateChess(chess.fen());
         selectedPosition = "";
         preMove = [];
-
-        getStockfish(chess.fen());
       } else {
         console.log(`${position} square was clicked !!`);
         preMove = RenderMove(position, chess);
@@ -61,9 +77,3 @@ for (let i = 1; i <= 8; i++) {
     });
   }
 }
-// const tmpSq = document.querySelector("#a1");
-// tmpSq.addEventListener("click", () => {
-//   RenderMove("a1", chess);
-// });
-
-// console.log(chess.moves({ verbose: true }));

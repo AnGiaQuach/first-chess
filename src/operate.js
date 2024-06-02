@@ -47,6 +47,9 @@ function RenderPieces(type, color, pos) {
 function removePieces(pos) {
   const square = document.querySelector(`#${pos}`);
   const piece = document.querySelector(`#${pos} img`);
+  if (piece == null) {
+    return;
+  }
   square.removeChild(piece);
 }
 
@@ -84,11 +87,19 @@ function RenderMove(position, chess) {
   const preMove = [];
 
   for (let s of movePieces) {
-    s = s.split("");
-    if (s.indexOf("+") != -1) {
-      s.splice(s.indexOf("+"));
+    for (let i = 1; i < s.length - 1; i++) {
+      let asciiA = s.charCodeAt(i);
+      let asciiB = s.charCodeAt(i + 1);
+      if (asciiA >= 97 && asciiA <= 104 && asciiB >= 49 && asciiB <= 56) {
+        s = s[i] + s[i + 1];
+        break;
+      }
     }
-    s = s.join("");
+    if (s == "O-O") {
+      s = "g1";
+    } else if (s == "O-O-O") {
+      s = "c1";
+    }
     console.log(s);
 
     const squareID = s.slice(-2);
@@ -111,7 +122,16 @@ async function getStockfish(userFen) {
 
   const reponse = await fetch(`${stockfishURI}`);
   const fenString = await reponse.json();
-  return fenString;
+  let cont = fenString.continuation;
+  let move = "";
+  for (let i = 0; i < cont.length; i++) {
+    if (cont[i] == " ") {
+      break;
+    }
+    move += cont[i];
+  }
+
+  return move;
 }
 
 export {
